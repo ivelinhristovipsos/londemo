@@ -1,6 +1,7 @@
 To run the app, only python and uv is needed on the target system:
 ```
 pip install uv
+uv sync
 ```
 
 After uv is installed, the streamlit server can be ran via:
