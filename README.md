@@ -1,6 +1,13 @@
-To run the app, only python and uv is needed on the target system:
+To run the app, only python and uv and git are needed on the target system.
+
+```
+git clone https://github.com/ivelinhristovipsos/londemo.git
+```
+
 ```
 pip install uv
+```
+```
 uv sync
 ```
 
