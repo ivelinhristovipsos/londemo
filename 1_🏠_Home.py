@@ -2,48 +2,58 @@ import streamlit as st
 
 from data.dummy_data import dummy_df, raw_dummy_data
 import pandas as pd
+import numpy as np
 
 raw_df = raw_dummy_data()
 
-# Set page configuration
 st.set_page_config(page_title="Home", layout="wide", page_icon="🏠")
 
+
+st.markdown("<h2 style='text-align: center;'>Demo Dashboard</h1>", unsafe_allow_html=True)
+
+
+# Set page configuration
+
 # Sidebar navigation
-st.sidebar.title("Filters")
+with st.sidebar:
+
+    st.sidebar.title("Filters")
+
+    # Apply CSS to change multiselect options colors to blue
+    st.markdown(
+        """
+        <style>
+            div[data-baseweb="select"] span {
+                background-color: #5f5ff5 !important;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Sidebar filters
+    country_options = sorted(raw_df["Country"].unique())
+    method_options = sorted(raw_df["Methodology"].unique())
+    group_options = sorted(raw_df["Group"].unique())
+
+    selected_countries = st.sidebar.multiselect(
+        "Countries", country_options, placeholder="All countries"
+    )
+
+    selected_group = st.sidebar.multiselect(
+        "Reporting group", group_options, max_selections=1, placeholder="All groups"
+    )
+
+    selected_methods = st.sidebar.multiselect(
+        "Methodologies", method_options, placeholder="All methodologies"
+    )
 
 
-
-# Apply CSS to change multiselect options colors to blue
-st.markdown(
-    """
-    <style>
-        div[data-baseweb="select"] span {
-            background-color: #5f5ff5 !important;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-# Sidebar filters
-country_options = list(raw_df["Country"].unique())
-method_options = list(raw_df["Methodology"].unique())
-group_options = list(raw_df["Group"].unique())
-
-selected_countries = st.sidebar.multiselect(
-    "Countries", country_options, placeholder="All countries"
-)
-
-selected_group = st.sidebar.multiselect(
-    "Reporting group", group_options, max_selections=1, placeholder="All groups"
-)
-
-selected_methods = st.sidebar.multiselect(
-    "Methodologies", method_options, placeholder="All methodologies"
-)
 
 
 # Top-level metrics container
+
+
 with st.container(border=True) as cont:
 
     options = ["1d", "7d", "14d", "max"]
@@ -57,6 +67,7 @@ with st.container(border=True) as cont:
     )
 
     # LOGIC: 
+    back_days = None
     if selection in ["1d", "7d", "14d"]:
         back_days = int(selection[:-1])
         raw_df = raw_df[raw_df["Date"] >= raw_df["Date"].max() - pd.Timedelta(days=back_days)]
@@ -76,17 +87,20 @@ with st.container(border=True) as cont:
     with col1:
         with st.container():
             valid_completes = raw_df["Valid Completes"].sum()
-            st.metric("Valid Completes", valid_completes, "+275 (0.75%)", border=True)
+            # calculate delta vs period bsed on selection:
+            st.metric("Valid Completes", valid_completes, "+275 (mocked)", border=True)
     with col2:
         with st.container():
+            rr_mean = raw_df['Response Rate'].mean()
             st.metric(
-                "Response Rate", f"{round(raw_df['Response Rate'].mean(),1)} %", "(0.75%)", delta_color="inverse", border=True
+                "Response Rate", f"{round(rr_mean, 1) if rr_mean == np.nan else 0} %", "-24%", border=True
             )
     with col3:
         with st.container():
+            se_mean = raw_df['Sample Exhaustion'].mean()
             st.metric(
                 "Sample Exhaustion",
-                f"{round(raw_df['Sample Exhaustion'].mean(),1)} %",
+                f"{round(se_mean, 1) if se_mean == np.nan else 0} %",
                 "(10.75%)",
                 delta_color="inverse",
                 border=True
@@ -127,4 +141,3 @@ edited_df = st.dataframe(
     # key="data",
     # on_select="rerun",
 )
-
