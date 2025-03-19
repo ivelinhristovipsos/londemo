@@ -4,12 +4,15 @@ from data.dummy_data import dummy_df, raw_dummy_data
 import pandas as pd
 import numpy as np
 
+from modules.helper import add_header, global_page_style
+
 raw_df = raw_dummy_data()
 
 st.set_page_config(page_title="Home", layout="wide", page_icon="🏠")
 
 
-st.markdown("<h2 style='text-align: center;'>Demo Dashboard</h1>", unsafe_allow_html=True)
+
+add_header("Demo Dashboard", 2)
 
 
 # Set page configuration
@@ -19,19 +22,6 @@ with st.sidebar:
 
     st.sidebar.title("Filters")
 
-    # Apply CSS to change multiselect options colors to blue
-    st.markdown(
-        """
-        <style>
-            div[data-baseweb="select"] span {
-                background-color: #5f5ff5 !important;
-            }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # Sidebar filters
     country_options = sorted(raw_df["Country"].unique())
     method_options = sorted(raw_df["Methodology"].unique())
     group_options = sorted(raw_df["Group"].unique())
@@ -49,10 +39,7 @@ with st.sidebar:
     )
 
 
-
-
 # Top-level metrics container
-
 
 with st.container(border=True) as cont:
 
@@ -70,7 +57,7 @@ with st.container(border=True) as cont:
     back_days = None
     if selection in ["1d", "7d", "14d"]:
         back_days = int(selection[:-1])
-        raw_df = raw_df[raw_df["Date"] >= raw_df["Date"].max() - pd.Timedelta(days=back_days)]
+        period_selection_mask = raw_df["Date"] >= raw_df["Date"].max() - pd.Timedelta(days=back_days)
     
 
     # Apply filters
@@ -91,41 +78,34 @@ with st.container(border=True) as cont:
             st.metric("Valid Completes", valid_completes, "+275 (mocked)", border=True)
     with col2:
         with st.container():
-            rr_mean = raw_df['Response Rate'].mean()
+            rr_mean = round(raw_df['Response Rate'].mean(), 1)
             st.metric(
-                "Response Rate", f"{round(rr_mean, 1) if rr_mean == np.nan else 0} %", "-24%", border=True
+                "Response Rate", f"{rr_mean} %", "-24%", border=True
             )
     with col3:
         with st.container():
             se_mean = raw_df['Sample Exhaustion'].mean()
             st.metric(
                 "Sample Exhaustion",
-                f"{round(se_mean, 1) if se_mean == np.nan else 0} %",
+                f"{round(se_mean, 1)} %",
                 "(10.75%)",
                 delta_color="inverse",
                 border=True
             )
     with col4:
         with st.container():
+            dq_issues_mean = raw_df["Data Quality Issues"].sum()
             st.metric(
                 "Data Quality Issues",
-                raw_df["Data Quality Issues"].sum(),
+                dq_issues_mean,
                 "+5 (4.75%)",
                 delta_color="inverse",
                 border=True,
             )
 
-# Display table with styled headerr
-st.markdown("Country Level Breakdown")
+add_header("Country Level Breakdown", 4)
 edited_df = st.dataframe(
-    df.style.set_table_styles(
-        [
-            {
-                "selector": "thead th",
-                "props": [("background-color", "##03002e"), ("color", "white")],
-            }
-        ]
-    ),
+    df,
     use_container_width=True,
     column_config={
         "% Completion": st.column_config.ProgressColumn(
@@ -141,3 +121,6 @@ edited_df = st.dataframe(
     # key="data",
     # on_select="rerun",
 )
+
+if __name__ == "__main__":
+    global_page_style()
