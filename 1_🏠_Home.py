@@ -8,7 +8,9 @@ st.set_page_config(page_title="Home", layout="wide", page_icon="🏠")
 
 raw_df = raw_dummy_data()
 
-add_header("Demo Dashboard", 2)
+add_header("<img src='https://images1.ipsosinteractive.com/GOHBG/ISR/Admin/Reporting_Demo/images/client_logo.png'/> <br/> Fieldwork Progress Dashboard ", 1)
+
+st.logo('https://upload.wikimedia.org/wikipedia/en/a/a6/Ipsos_logo.svg', icon_image='https://upload.wikimedia.org/wikipedia/en/a/a6/Ipsos_logo.svg')
 
 with st.sidebar:
     st.sidebar.title("Filters")
