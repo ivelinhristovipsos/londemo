@@ -1,5 +1,28 @@
+/* ==========================================
+    GENERAL PAGE LAYOUT
+   ========================================== */
+
+/* Background color for the main content area */
 div[data-baseweb="select"] span {
     background-color: #bdeec0 !important;
+}
+
+section[data-testid="stMain"]{
+    background-color:#f0ededa8;
+}
+
+header[data-testid="stHeader"]{
+    background-color:#797d94;
+}
+
+   /* ==========================================
+    SPECIFIC ELEMENTS/CONTAINERS - HOME PAGE
+   ========================================== */
+
+/* KPI Card formatting */
+
+div[class="st-emotion-cache-4uzi61 eu6p4el5"]{
+    background-color:rgba(199, 184, 184, 0.836); /*KPI Container background*/
 }
 
 div[data-testid="stElementContainer"] div[data-testid="stMetric"] {
@@ -22,18 +45,7 @@ div[data-testid="stMetricDelta"]{
     border-radius:5px;
 }
 
-section[data-testid="stMain"]{
-    background-color:#f0ededa8;
-}
-
-div[class="st-emotion-cache-4uzi61 eu6p4el5"]{
-    background-color:rgba(199, 184, 184, 0.836);
-}
-
-header[data-testid="stHeader"]{
-    background-color:#797d94;
-}
-
+/* KPI Card delta filtering */
 button[kind="segmented_control"]{
     background-color: rgba(255, 255, 255, 0.87);
 }
@@ -55,3 +67,8 @@ button[kind="segmented_controlActive"]:hover{
     opacity:0.8;
     color:rgb(255, 255, 255);
 }
+
+
+
+
+
