@@ -1,0 +1,22 @@
+/* ==========================================
+    GENERAL PAGE LAYOUT
+   ========================================== */
+
+/* Background color for the main content area */
+div[data-baseweb="select"] span {
+    background-color: #bdeec0 !important;
+}
+
+section[data-testid="stMain"]{
+    background-color:#f0ededa8;
+}
+
+header[data-testid="stHeader"]{
+    background-color:#797d94;
+}
+
+
+
+
+
+

@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from data.dummy_data import dummy_df, raw_dummy_data
-from modules.style_helpers import add_header, global_page_style
+from modules.style_helpers import add_header, global_page_style, custom_page_style
 
 st.set_page_config(page_title="Home", layout="wide", page_icon="🏠")
 
@@ -118,3 +118,4 @@ with st.container():
 
 if __name__ == "__main__":
     global_page_style()
+    custom_page_style("1_home.css")
