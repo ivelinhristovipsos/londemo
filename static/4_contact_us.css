@@ -1,0 +1,39 @@
+/* Remove padding/margin from the main content area */
+.block-container {
+    position: relative;
+    padding-top: 0 !important;
+    margin: 0 !important; /* Remove margin */
+}
+
+/* Ensure the banner image fits perfectly */
+.header-banner {
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block; /* Prevents extra spacing */
+}
+
+/* Remove gap between banner and the container */
+.overlap-container {
+    position: relative;
+    margin-top: -20vh !important; /* Increase negative margin for better overlap */
+    padding: 0 !important;
+    z-index: 2;
+}
+
+/* Ensure the main container doesn't introduce spacing */
+.main-container {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+div[class="st-emotion-cache-4uzi61 eu6p4el5"] {
+    text-align:center;
+    color:white;
+    background-color: #797d94;
+}
+
+p[class="mailto-subheader"] a{
+    text-decoration: none;
+    color:rgba(162, 231, 145, 0.904);
+}
