@@ -1,12 +1,15 @@
 import pandas as pd
 import streamlit as st
 
-from data.dummy_data import dummy_df, raw_dummy_data
-from modules.style_helpers import add_header, global_page_style, custom_page_style
+from data.data import get_excel_data, aggregate_daily_data
+from modules.style_helpers import add_header, format_font, custom_page_style
 
 st.set_page_config(page_title="Home", layout="wide", page_icon="🏠")
 
-raw_df = raw_dummy_data()
+data_dict = get_excel_data("data/dummy_data.xlsx")
+daily_df = data_dict["daily_data"]
+targets_df = data_dict["targets"]
+
 
 add_header("<img src='https://images1.ipsosinteractive.com/GOHBG/ISR/Admin/Reporting_Demo/images/client_logo.png'/> <br/> Fieldwork Progress Dashboard ", 1)
 
@@ -15,9 +18,9 @@ st.logo('https://upload.wikimedia.org/wikipedia/en/a/a6/Ipsos_logo.svg', icon_im
 with st.sidebar:
     st.sidebar.title("Filters")
 
-    country_options = sorted(raw_df["Country"].unique())
-    method_options = sorted(raw_df["Methodology"].unique())
-    group_options = sorted(raw_df["Group"].unique())
+    country_options = sorted(daily_df["Country_Label"].unique())
+    method_options = sorted(daily_df["Methodology"].unique())
+    group_options = sorted(daily_df["Group"].unique())
 
     selected_countries = st.sidebar.multiselect(
         "Countries", country_options, placeholder="All countries"
@@ -49,73 +52,98 @@ with st.container(border=True) as cont:
     back_days = None
     if selection in ["1d", "7d", "14d"]:
         back_days = int(selection[:-1])
-        period_selection_mask = raw_df["Date"] >= raw_df["Date"].max() - pd.Timedelta(
+        period_selection_mask = daily_df["Date"] >= daily_df["Date"].max() - pd.Timedelta(
             days=back_days
         )
+        daily_df = daily_df[period_selection_mask]
+
+    st.text(f'{daily_df["Date"].dt.date.min()} - {daily_df["Date"].dt.date.max()}')
 
     # Apply filters
     if selected_group:
-        raw_df = raw_df[raw_df["Group"].isin(selected_countries)]
+        daily_df = daily_df[daily_df["Group"].isin(selected_group)]
     if selected_countries:
-        raw_df = raw_df[raw_df["Country"].isin(selected_countries)]
+        daily_df = daily_df[daily_df["Country_Label"].isin(selected_countries)]
     if selected_methods:
-        raw_df = raw_df[raw_df["Methodology"].isin(selected_methods)]
+        daily_df = daily_df[daily_df["Methodology"].isin(selected_methods)]
 
-    df = dummy_df(raw_df)
-
+    daily_agg_df = aggregate_daily_data(data_dict["daily_data"], daily_df, targets_df)
+    # st.table(daily_agg_df)
     col1, col2, col3, col4 = st.columns(4)
     
     
     with col1:
         with st.container():
-            valid_completes = raw_df["Valid Completes"].sum()
-            # calculate delta vs period bsed on selection:
-            st.metric("Valid Completes", valid_completes, "+275 (mocked)", border=True)
+            total_valid_completes = data_dict["daily_data"]["Valid Completes"].sum()
+            filtered_valid_completes = daily_df["Valid Completes"].sum()
+            filtered_percent = round(filtered_valid_completes / total_valid_completes * 100, 1)
+            delta_display = f"{filtered_valid_completes} ({filtered_percent}%)" if back_days else None
+            st.metric("Valid Completes", total_valid_completes, delta_display, border=True)
     with col2:
         with st.container():
-            rr_mean = round(raw_df["Response Rate"].mean(), 1)
-            st.metric("Response Rate", f"{rr_mean} %", "-24%", border=True)
+            total_rr = round(total_valid_completes / data_dict["daily_data"]["Sample_Closed"].sum() * 100, 1)
+            filtered_rr = round(daily_df["Valid Completes"].sum() / daily_df["Sample_Closed"].sum() * 100, 1)
+            delta_rr = round(filtered_rr - total_rr, 1)
+            delta_display = f"{delta_rr} ({filtered_rr}%)"  if back_days else None
+            st.metric("Response Rate", f"{total_rr} %", delta_display, border=True)
     with col3:
         with st.container():
-            se_mean = raw_df["Sample Exhaustion"].mean()
+            total_se = round(data_dict["daily_data"]["Sample_Closed"].sum() / targets_df["Sample_Available"].sum() * 100, 1)
+            filtered_se = round(daily_df["Sample_Closed"].sum() / targets_df["Sample_Available"].sum() * 100, 1)
+            delta_se = round(filtered_se - total_se, 1)
+            delta_display = f"{delta_se} ({filtered_se}%)"  if back_days else None
             st.metric(
                 "Sample Exhaustion",
-                f"{round(se_mean, 1)} %",
-                "(10.75%)",
+                f"{total_se} %",
+                delta_display,
                 delta_color="inverse",
                 border=True,
             )
     with col4:
         with st.container():
-            dq_issues_mean = raw_df["Data Quality Issues"].sum()
+            total_invalid_completes = data_dict["daily_data"]["Invalid Completes"].sum()
+            filtered_invalid_completes = daily_df["Invalid Completes"].sum()
+            filtered_percent = round(filtered_invalid_completes / total_invalid_completes * 100, 1)
+            delta_display = f"{filtered_invalid_completes} ({filtered_percent}%)"  if back_days else None
             st.metric(
                 "Data Quality Issues",
-                dq_issues_mean,
-                "+5 (4.75%)",
+                total_invalid_completes,
+                delta_display,
                 delta_color="inverse",
                 border=True,
             )
 
+
+
+if selected_countries:
+    daily_agg_df = daily_agg_df[daily_agg_df["Country_Label"].isin(selected_countries)]
+
+
+if not back_days:
+    daily_agg_df.drop(columns=["𝛥 Completes"], inplace=True)
+        
 with st.container():
     add_header("Country Level Breakdown", 4)
-    edited_df = st.dataframe(
-        df,
+
+    st.dataframe(
+        daily_agg_df,
         use_container_width=True,
+        hide_index=True,
         column_config={
+            "Country_Label": st.column_config.TextColumn(label="Country"),
+            "Valid Completes": st.column_config.TextColumn(),
             "% Completion": st.column_config.ProgressColumn(
-                min_value=0, max_value=100, format="%d%%"
+                min_value=0, max_value=100, format="%d %%", help="Percentage of target completes achieved"
             ),
-            "Response Rate": st.column_config.NumberColumn(format="%d%%"),
-            "Refusal Rate": st.column_config.NumberColumn(format="%d%%"),
-            "Sample Exhaustion": st.column_config.NumberColumn(format="%d%%"),
+            # "Response Rate": st.column_config.NumberColumn(format="%d %%"),
+            "Refusal Rate": st.column_config.NumberColumn(format="%d %%"),
+            "Sample Exhaustion": st.column_config.NumberColumn(format="%d %%"),
             "Data Quality Issues": st.column_config.NumberColumn(format="plain"),
         },
-        hide_index=True,
-        # selection_mode="single-row",
-        # key="data",
-        # on_select="rerun",
+        
     )
 
+
 if __name__ == "__main__":
-    global_page_style()
+    custom_page_style("base.css")
     custom_page_style("1_home.css")
