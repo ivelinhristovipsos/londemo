@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 import pandas as pd
-import streamlit as st
+from modules.style_helpers import apply_style_to_agg_data
 
 
 @lru_cache(maxsize=1)
@@ -10,7 +10,7 @@ def get_excel_data(path_to_excel, sheet_name=None):
     return df
 
 
-def aggregate_daily_data(daily_df, filtered_daily_df, targets_df):
+def aggregate_home_daily_table_data(daily_df, filtered_daily_df, targets_df):
     aggregated_data = daily_df
     aggregated_data = (
         daily_df.groupby(["Country_Label", "Methodology"], as_index=False)
@@ -206,3 +206,195 @@ def aggregate_daily_data(daily_df, filtered_daily_df, targets_df):
     )
 
     return aggregated_data
+
+
+def aggregate_demo_table(daily_df, target_df, ci):
+    if ci not in ["%", "Abs", "Deviation"]:
+        raise ValueError("ci must be one of '%', 'Abs', 'Deviation'")
+
+    counts_df = daily_df
+    counts_df = (
+        daily_df.groupby(["Country_Label", "Methodology"], as_index=False)
+        .agg(
+            {
+                "Valid Completes": "sum",
+                "Age_18_29": "sum",
+                "Age_30_44": "sum",
+                "Age_45_54": "sum",
+                "Age_54_plus": "sum",
+                "Gender_M": "sum",
+                "Gender_F": "sum",
+                "Education_I": "sum",
+                "Education_II": "sum",
+                "Education_III": "sum",
+            }
+        )
+        .reset_index()
+        .rename(
+            columns={
+                "Valid Completes": "Completes",
+                "Age_18_29": "18-29",
+                "Age_30_44": "30-44",
+                "Age_45_54": "45-54",
+                "Age_54_plus": "55+",
+                "Gender_M": "Male",
+                "Gender_F": "Female",
+                "Education_I": "Education I",
+                "Education_II": "Education II",
+                "Education_III": "Education III",
+            }
+        )
+    )
+
+    method_recode_dict = {
+        "WEB": "Web 🌐",
+        "F2F": "F2F 🧑‍🤝‍🧑",
+        "CATI": "CATI 📞",
+    }
+    counts_df["Methodology"] = counts_df["Methodology"].map(method_recode_dict)
+
+    counts_df.drop("index", axis=1, inplace=True)
+
+    if ci == "Abs":
+        return counts_df
+
+    target_count_df = target_df[
+        [
+            "Country_Label",
+            # "Target_Completes",
+            "Age_18_29",
+            "Age_30_44",
+            "Age_45_54",
+            "Age_54_plus",
+            "Gender_M",
+            "Gender_F",
+            "Education_I",
+            "Education_II",
+            "Education_III",
+        ]
+    ]
+
+    target_count_df.rename(
+        columns={
+            # "Country_Label": "Country",
+            # "Target_Completes": "Completes",
+            "Age_18_29": "18-29",
+            "Age_30_44": "30-44",
+            "Age_45_54": "45-54",
+            "Age_54_plus": "55+",
+            "Gender_M": "Male",
+            "Gender_F": "Female",
+            "Education_I": "Education I",
+            "Education_II": "Education II",
+            "Education_III": "Education III",
+        },
+        inplace=True,
+    )
+
+    proc_df = (
+        counts_df.set_index(["Country_Label", "Methodology", "Completes"])
+        .div(
+            target_count_df.set_index(
+                [
+                    "Country_Label",
+                ]
+            )
+        )
+        .mul(100)
+        .round(1)
+        .reset_index()
+    )
+    proc_df = proc_df[
+        [
+            "Country_Label",
+            "Methodology",
+            "Completes",
+            "18-29",
+            "30-44",
+            "45-54",
+            "55+",
+            "Male",
+            "Female",
+            "Education I",
+            "Education II",
+            "Education III",
+        ]
+    ]
+    if ci == "%":
+        return proc_df
+
+    target_perc_df = target_df[
+        [
+            "Country_Label",
+            "Age_18_29_%",
+            "Age_30_44_%",
+            "Age_45_54_%",
+            "Age_54_plus_%",
+            "Gender_M_%",
+            "Gender_F_%",
+            "Education_I_%",
+            "Education_II_%",
+            "Education_III_%",
+        ]
+    ]
+    target_perc_df.rename(
+        columns={
+            # "Country_Label": "Country",
+            # "Target_Completes": "Completes",
+            "Age_18_29_%": "18-29",
+            "Age_30_44_%": "30-44",
+            "Age_45_54_%": "45-54",
+            "Age_54_plus_%": "55+",
+            "Gender_M_%": "Male",
+            "Gender_F_%": "Female",
+            "Education_I_%": "Education I",
+            "Education_II_%": "Education II",
+            "Education_III_%": "Education III",
+        },
+        inplace=True,
+    )
+
+    diff_df = (
+        target_perc_df.set_index(
+            [
+                "Country_Label",
+            ]
+        )
+        .mul(100)
+        .sub(proc_df.set_index(["Country_Label", "Methodology", "Completes"]))
+        .round(1)
+        .reset_index()
+    )
+    diff_df = diff_df[
+        [
+            "Country_Label",
+            "Methodology",
+            "Completes",
+            "18-29",
+            "30-44",
+            "45-54",
+            "55+",
+            "Male",
+            "Female",
+            "Education I",
+            "Education II",
+            "Education III",
+        ]
+    ]
+    if ci == "Deviation":
+        return apply_style_to_agg_data(
+            diff_df,
+            [
+                "18-29",
+                "30-44",
+                "45-54",
+                "55+",
+                "Male",
+                "Female",
+                "Education I",
+                "Education II",
+                "Education III",
+            ],
+            None,
+        )
+        # return diff_df
