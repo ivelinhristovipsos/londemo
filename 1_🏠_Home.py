@@ -4,7 +4,6 @@ import streamlit as st
 from data.data import get_excel_data, aggregate_home_daily_table_data
 from modules.style_helpers import add_header, apply_style_to_agg_data, custom_page_style
 from modules.control_helpers import sidebar_main
-import time
 
 st.set_page_config(page_title="Home", layout="wide", page_icon="🏠")
 with st.spinner("Loading..."):
