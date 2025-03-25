@@ -259,52 +259,26 @@ def aggregate_demo_table(daily_df, target_df, ci):
     if ci == "Abs":
         return counts_df
 
-    target_count_df = target_df[
-        [
-            "Country_Label",
-            # "Target_Completes",
-            "Age_18_29",
-            "Age_30_44",
-            "Age_45_54",
-            "Age_54_plus",
-            "Gender_M",
-            "Gender_F",
-            "Education_I",
-            "Education_II",
-            "Education_III",
-        ]
-    ]
+    proc_df = counts_df
 
-    target_count_df.rename(
-        columns={
-            # "Country_Label": "Country",
-            # "Target_Completes": "Completes",
-            "Age_18_29": "18-29",
-            "Age_30_44": "30-44",
-            "Age_45_54": "45-54",
-            "Age_54_plus": "55+",
-            "Gender_M": "Male",
-            "Gender_F": "Female",
-            "Education_I": "Education I",
-            "Education_II": "Education II",
-            "Education_III": "Education III",
-        },
-        inplace=True,
+    proc_df["age_total"] = counts_df[["18-29", "30-44", "45-54", "55+"]].sum(axis=1)
+    proc_df["gender_total"] = counts_df[["Male", "Female"]].sum(axis=1)
+    proc_df["education_total"] = counts_df[["Education I", "Education II", "Education III"]].sum(axis=1)
+
+    proc_df.loc[:, "18-29":"55+"] = (
+        proc_df.loc[:, "18-29":"55+"].div(proc_df["age_total"], axis=0).mul(100).round(1)
     )
 
-    proc_df = (
-        counts_df.set_index(["Country_Label", "Methodology", "Completes"])
-        .div(
-            target_count_df.set_index(
-                [
-                    "Country_Label",
-                ]
-            )
-        )
-        .mul(100)
-        .round(1)
-        .reset_index()
+    proc_df.loc[:, "Male":"Female"] = (
+        proc_df.loc[:, "Male":"Female"].div(proc_df["gender_total"], axis=0).mul(100).round(1)
     )
+
+    proc_df.loc[:, "Education I":"Education III"] = (
+        proc_df.loc[:, "Education I":"Education III"].div(proc_df["education_total"], axis=0).mul(100).round(1)
+    )
+    
+    # proc_df = proc_df.apply(lambda x: f"+{str(x)}" if not x.startswith("-") else x)
+
     proc_df = proc_df[
         [
             "Country_Label",
