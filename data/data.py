@@ -2,6 +2,7 @@ from functools import lru_cache
 
 import pandas as pd
 from modules.style_helpers import apply_style_to_agg_data
+import matplotlib.pyplot as plt
 
 
 @lru_cache(maxsize=1)
@@ -321,7 +322,22 @@ def aggregate_demo_table(daily_df, target_df, ci):
         ]
     ]
     if ci == "%":
-        return proc_df
+        # color green values above 100:
+        
+        return proc_df.style.applymap(
+            lambda x: "color: #09ab3b" if x >= 100 else "",
+            subset=[
+                "18-29",
+                "30-44",
+                "45-54",
+                "55+",
+                "Male",
+                "Female",
+                "Education I",
+                "Education II",
+                "Education III",
+            ],
+        )
 
     target_perc_df = target_df[
         [
@@ -397,4 +413,18 @@ def aggregate_demo_table(daily_df, target_df, ci):
             ],
             None,
         )
-        # return diff_df
+        # return diff_df.style.background_gradient(
+        #     axis=None,
+        #     cmap="PiYG",
+        #     subset=[
+        #         "18-29",
+        #         "30-44",
+        #         "45-54",
+        #         "55+",
+        #         "Male",
+        #         "Female",
+        #         "Education I",
+        #         "Education II",
+        #         "Education III",
+        #     ],
+        # )

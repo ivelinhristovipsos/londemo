@@ -20,7 +20,6 @@ data_dict = get_excel_data("data/dummy_data.xlsx")
 daily_df = data_dict["daily_data"]
 targets_df = data_dict["targets"]
 
-# Sidebar
 selected_countries, selected_group, selected_methods = sidebar_main(
     daily_df["Country_Label"], daily_df["Group"], daily_df["Methodology"]
 )
