@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from data.data import get_excel_data, aggregate_daily_data
-from modules.style_helpers import add_header, format_font, custom_page_style
+from modules.style_helpers import add_header, apply_style_to_agg_data, custom_page_style
 
 st.set_page_config(page_title="Home", layout="wide", page_icon="🏠")
 
@@ -67,7 +67,6 @@ with st.container(border=True) as cont:
     if selected_methods:
         daily_df = daily_df[daily_df["Methodology"].isin(selected_methods)]
 
-    daily_agg_df = aggregate_daily_data(data_dict["daily_data"], daily_df, targets_df)
     # st.table(daily_agg_df)
     col1, col2, col3, col4 = st.columns(4)
     
@@ -115,13 +114,16 @@ with st.container(border=True) as cont:
 
 
 
+daily_agg_df = aggregate_daily_data(data_dict["daily_data"], daily_df, targets_df)
+    
 if selected_countries:
     daily_agg_df = daily_agg_df[daily_agg_df["Country_Label"].isin(selected_countries)]
 
 
 if not back_days:
-    daily_agg_df.drop(columns=["𝛥 Completes"], inplace=True)
-        
+    daily_agg_df.drop(columns=["𝛥 Completes", "𝛥 Response Rate", "𝛥 Refusal Rate", "𝛥 Sample Exhaustion", "𝛥 Data Quality Issues"], inplace=True)
+else:
+    daily_agg_df = apply_style_to_agg_data(daily_agg_df)
 with st.container():
     add_header("Country Level Breakdown", 4)
 
@@ -130,19 +132,19 @@ with st.container():
         use_container_width=True,
         hide_index=True,
         column_config={
-            "Country_Label": st.column_config.TextColumn(label="Country"),
+            "Country_Label": st.column_config.TextColumn(label="Country", pinned=True),
+            "Methodology": st.column_config.TextColumn(),
             "Valid Completes": st.column_config.TextColumn(),
             "% Completion": st.column_config.ProgressColumn(
                 min_value=0, max_value=100, format="%d %%", help="Percentage of target completes achieved"
             ),
-            # "Response Rate": st.column_config.NumberColumn(format="%d %%"),
-            "Refusal Rate": st.column_config.NumberColumn(format="%d %%"),
-            "Sample Exhaustion": st.column_config.NumberColumn(format="%d %%"),
+            "Response Rate": st.column_config.NumberColumn(format="%f %%"),
+            "Refusal Rate": st.column_config.NumberColumn(format="%f %%"),
+            "Sample Exhaustion": st.column_config.NumberColumn(format="%f %%"),
             "Data Quality Issues": st.column_config.NumberColumn(format="plain"),
         },
         
     )
-
 
 if __name__ == "__main__":
     custom_page_style("base.css")
