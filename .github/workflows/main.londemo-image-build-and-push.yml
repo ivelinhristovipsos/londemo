@@ -18,7 +18,7 @@ permissions:
     
 env:
   GCP_IMAGE_NAME: londemo-dev
-  REPOSITORY: longemo-docker-images
+  REPOSITORY: londemo-docker-images
   PROJECT_ID: skycrate
   REPO_REGION: europe-west2-docker.pkg.dev
   IMAGE_TAG: latest
