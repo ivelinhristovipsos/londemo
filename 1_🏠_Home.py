@@ -20,7 +20,7 @@ with st.spinner("Loading..."):
     )
 
 
-    data_dict = get_excel_data(os.path.abspath("data/dummy_data.xlsx"))
+    data_dict = get_excel_data("data/dummy_data.xlsx")
     daily_df = data_dict["daily_data"]
     targets_df = data_dict["targets"]
 
