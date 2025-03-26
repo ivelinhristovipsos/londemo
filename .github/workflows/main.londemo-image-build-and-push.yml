@@ -42,7 +42,7 @@ jobs:
       uses: google-github-actions/auth@v2
       with:
         project_id: 'skycrate'
-        workload_identity_provider: projects/714604549924/locations/global/workloadIdentityPools/github/providers/my-repo
+        workload_identity_provider: projects/714604549924/locations/global/workloadIdentityPools/github/providers/ipsos-bg-ops-pa-repos
         service_account: github-images-srvc@skycrate.iam.gserviceaccount.com
       
     - name: Login to GCR
