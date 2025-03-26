@@ -1,10 +1,8 @@
-import os
-
 import pandas as pd
 import streamlit as st
 
-from data.data import aggregate_home_daily_table_data, get_excel_data
-from modules.control_helpers import sidebar_main
+from data.data_helpers import aggregate_home_daily_table_data, get_excel_data
+from modules.control_helpers import sidebar_main, date_filter_change_callback
 from modules.style_helpers import add_header, apply_style_to_agg_data, custom_page_style
 
 st.set_page_config(page_title="Home", layout="wide", page_icon="🏠")
@@ -18,7 +16,6 @@ with st.spinner("Loading..."):
         "https://upload.wikimedia.org/wikipedia/en/a/a6/Ipsos_logo.svg",
         icon_image="https://upload.wikimedia.org/wikipedia/en/a/a6/Ipsos_logo.svg",
     )
-
 
     data_dict = get_excel_data("data/dummy_data.xlsx")
     daily_df = data_dict["daily_data"]
@@ -35,17 +32,18 @@ with st.spinner("Loading..."):
     if selected_methods:
         daily_df = daily_df[daily_df["Methodology"].isin(selected_methods)]
 
-
     # Top-level metrics container
     with st.container(border=True) as cont:
         options = ["1d", "7d", "14d", "max"]
+
         selection = st.segmented_control(
             label="date_filter",
             options=options,
             selection_mode="single",
             default="1d",
-            key="segmented_control",
+            key="date_filter",
             label_visibility="collapsed",
+            on_change=date_filter_change_callback,
         )
 
         # LOGIC:
@@ -60,8 +58,8 @@ with st.spinner("Loading..."):
         # st.text(f'{daily_df["Date"].dt.date.min()} - {daily_df["Date"].dt.date.max()}')
 
         # Main KPIs
-        completes_col, response_rate_col, sample_exhaustion_col, dq_issues_col = st.columns(
-            4
+        completes_col, response_rate_col, sample_exhaustion_col, dq_issues_col = (
+            st.columns(4)
         )
         with completes_col:
             with st.container():
@@ -95,6 +93,7 @@ with st.spinner("Loading..."):
                 delta_rr = round(filtered_rr - total_rr, 1)
                 delta_display = f"{delta_rr} ({filtered_rr}%)" if back_days else None
                 st.metric("Response Rate", f"{total_rr} %", delta_display, border=True)
+        
         with sample_exhaustion_col:
             with st.container():
                 total_se = round(
@@ -120,7 +119,9 @@ with st.spinner("Loading..."):
                 )
         with dq_issues_col:
             with st.container():
-                total_invalid_completes = data_dict["daily_data"]["Invalid Completes"].sum()
+                total_invalid_completes = data_dict["daily_data"][
+                    "Invalid Completes"
+                ].sum()
                 filtered_invalid_completes = daily_df["Invalid Completes"].sum()
                 filtered_percent = round(
                     filtered_invalid_completes / total_invalid_completes * 100, 1
@@ -143,7 +144,9 @@ with st.spinner("Loading..."):
         data_dict["daily_data"], daily_df, targets_df
     )
     if selected_countries:
-        daily_agg_df = daily_agg_df[daily_agg_df["Country_Label"].isin(selected_countries)]
+        daily_agg_df = daily_agg_df[
+            daily_agg_df["Country_Label"].isin(selected_countries)
+        ]
 
     if not back_days:
         daily_agg_df.drop(
@@ -174,7 +177,9 @@ with st.spinner("Loading..."):
             use_container_width=True,
             hide_index=True,
             column_config={
-                "Country_Label": st.column_config.TextColumn(label="Country", pinned=True),
+                "Country_Label": st.column_config.TextColumn(
+                    label="Country", pinned=True
+                ),
                 "Methodology": st.column_config.TextColumn(),
                 "Valid Completes": st.column_config.TextColumn(),
                 "% Completion": st.column_config.ProgressColumn(
