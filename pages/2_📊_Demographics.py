@@ -37,15 +37,15 @@ with st.spinner("Loading..."):
     if selected_methods:
         daily_df = daily_df[daily_df["Methodology"].isin(selected_methods)]
     
-    st.divider()
-    add_header("Age", 4)
-    display_demo_table(aggregate_demo_age_table, daily_df, targets_df)
-    st.divider()
-    add_header("Gender", 4)
-    display_demo_table(aggregate_demo_gen_table, daily_df, targets_df)
-    st.divider()
-    add_header("Education", 4)
-    display_demo_table(aggregate_demo_edu_table, daily_df, targets_df)
+    # st.divider()
+    # add_header("Age", 4)
+    display_demo_table(aggregate_demo_age_table, daily_df, targets_df, "🔢 Age")
+    # st.divider()
+    # add_header("Gender", 4)
+    display_demo_table(aggregate_demo_gen_table, daily_df, targets_df, "👫 Gender")
+    # st.divider()
+    # add_header("Education", 4)
+    display_demo_table(aggregate_demo_edu_table, daily_df, targets_df, "📚 Education")
 
 if __name__ == "__main__":
     global_page_style()
