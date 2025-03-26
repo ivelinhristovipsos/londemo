@@ -1,9 +1,11 @@
+import os
+
 import pandas as pd
 import streamlit as st
 
-from data.data import get_excel_data, aggregate_home_daily_table_data
-from modules.style_helpers import add_header, apply_style_to_agg_data, custom_page_style
+from data.data import aggregate_home_daily_table_data, get_excel_data
 from modules.control_helpers import sidebar_main
+from modules.style_helpers import add_header, apply_style_to_agg_data, custom_page_style
 
 st.set_page_config(page_title="Home", layout="wide", page_icon="🏠")
 with st.spinner("Loading..."):
@@ -16,6 +18,7 @@ with st.spinner("Loading..."):
         "https://upload.wikimedia.org/wikipedia/en/a/a6/Ipsos_logo.svg",
         icon_image="https://upload.wikimedia.org/wikipedia/en/a/a6/Ipsos_logo.svg",
     )
+
 
     data_dict = get_excel_data("data/dummy_data.xlsx")
     daily_df = data_dict["daily_data"]
