@@ -13,8 +13,9 @@ on:
         default: 'dev'
 
 permissions:
-  contents: 'read'
-  id-token: 'write'
+  contents: read
+  pages: write
+  id-token: write
     
 env:
   GCP_IMAGE_NAME: londemo-dev
