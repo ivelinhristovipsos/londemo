@@ -2,13 +2,19 @@ import pandas as pd
 import streamlit as st
 
 from data.data_helpers import aggregate_home_daily_table_data, get_excel_data
-from modules.control_helpers import sidebar_main, date_filter_change_callback
+from modules.control_helpers import (
+    sidebar_main,
+    draw_completes_barchart,
+    date_filter_change_callback,
+)
 from modules.style_helpers import add_header, apply_style_to_agg_data, custom_page_style
+import numpy as np
 
 st.set_page_config(page_title="Home", layout="wide", page_icon="🏠")
+
 with st.spinner("Loading..."):
     add_header(
-        "<img src='https://images1.ipsosinteractive.com/GOHBG/ISR/Admin/Reporting_Demo/images/client_logo.png' width='200px'/> <br/> Fieldwork Progress Dashboard",
+        "<img src='https://images1.ipsosinteractive.com/GOHBG/ISR/Admin/Reporting_Demo/images/client_logo.png' width='200px'/> <br/><br/> Fieldwork Progress Dashboard",
         2,
     )
 
@@ -31,16 +37,18 @@ with st.spinner("Loading..."):
         daily_df = daily_df[daily_df["Country_Label"].isin(selected_countries)]
     if selected_methods:
         daily_df = daily_df[daily_df["Methodology"].isin(selected_methods)]
+        
+    daily_country_flt_df = daily_df.copy()
 
     # Top-level metrics container
     with st.container(border=True) as cont:
         options = ["1d", "7d", "14d", "max"]
-
+        if not st.session_state.get("date_filter"):
+            st.session_state["date_filter"] = options[0]
         selection = st.segmented_control(
             label="date_filter",
             options=options,
             selection_mode="single",
-            default="1d",
             key="date_filter",
             label_visibility="collapsed",
             on_change=date_filter_change_callback,
@@ -93,7 +101,7 @@ with st.spinner("Loading..."):
                 delta_rr = round(filtered_rr - total_rr, 1)
                 delta_display = f"{delta_rr} ({filtered_rr}%)" if back_days else None
                 st.metric("Response Rate", f"{total_rr} %", delta_display, border=True)
-        
+
         with sample_exhaustion_col:
             with st.container():
                 total_se = round(
@@ -108,6 +116,7 @@ with st.spinner("Loading..."):
                     * 100,
                     1,
                 )
+
                 delta_se = round(filtered_se - total_se, 1)
                 delta_display = f"{delta_se} ({filtered_se}%)" if back_days else None
                 st.metric(
@@ -139,61 +148,91 @@ with st.spinner("Loading..."):
                     border=True,
                 )
 
-    # Country-level breakdown table
-    daily_agg_df = aggregate_home_daily_table_data(
-        data_dict["daily_data"], daily_df, targets_df
-    )
-    if selected_countries:
-        daily_agg_df = daily_agg_df[
-            daily_agg_df["Country_Label"].isin(selected_countries)
-        ]
+        # Chart
 
-    if not back_days:
-        daily_agg_df.drop(
-            columns=[
-                "𝛥 Completes",
-                "𝛥 Response Rate",
-                "𝛥 Refusal Rate",
-                "𝛥 Sample Exhaustion",
-                "𝛥 Data Quality Issues",
-            ],
-            inplace=True,
+        date_rng = pd.date_range(
+            start=data_dict["daily_data"]["Date"].min(),
+            end=data_dict["daily_data"]["Date"].max(),
+            freq="D",
         )
-    else:
-        daily_agg_df = apply_style_to_agg_data(
-            daily_agg_df,
-            ["𝛥 Completes", "𝛥 Response Rate"],
-            [
-                "𝛥 Refusal Rate",
-                "𝛥 Sample Exhaustion",
-                "𝛥 Data Quality Issues",
-            ],
+        agg_df = (
+            pd.pivot_table(
+                daily_country_flt_df,
+                index="Date",
+                values=["Valid Completes", "Invalid Completes"],
+                aggfunc=np.sum,
+            )
+            .reindex(date_rng)
+            .reset_index(names=["Date"])
         )
-    with st.container():
-        add_header("Country Level Breakdown", 4)
 
-        st.dataframe(
-            daily_agg_df,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "Country_Label": st.column_config.TextColumn(
-                    label="Country", pinned=True
-                ),
-                "Methodology": st.column_config.TextColumn(),
-                "Valid Completes": st.column_config.TextColumn(),
-                "% Completion": st.column_config.ProgressColumn(
-                    min_value=0,
-                    max_value=100,
-                    format="%d %%",
-                    help="Percentage of target completes achieved",
-                ),
-                "Response Rate": st.column_config.NumberColumn(format="%f %%"),
-                "Refusal Rate": st.column_config.NumberColumn(format="%f %%"),
-                "Sample Exhaustion": st.column_config.NumberColumn(format="%f %%"),
-                "Data Quality Issues": st.column_config.NumberColumn(format="plain"),
-            },
+        max_daily_completes = (
+            data_dict["daily_data"].groupby("Date")["Valid Completes"].sum().max()
         )
+        max_daily_completes_filtered = (
+            daily_df.groupby("Date")["Valid Completes"].sum().max()
+        )
+        if max_daily_completes / 2 > max_daily_completes_filtered:
+            max_daily_completes /= 2
+
+        draw_completes_barchart(agg_df, max_daily_completes, back_days)
+
+        # Country-level breakdown table
+        daily_agg_df = aggregate_home_daily_table_data(
+            data_dict["daily_data"], daily_df, targets_df
+        )
+        if selected_countries:
+            daily_agg_df = daily_agg_df[
+                daily_agg_df["Country_Label"].isin(selected_countries)
+            ]
+
+        if not back_days:
+            daily_agg_df.drop(
+                columns=[
+                    "𝛥 Completes",
+                    "𝛥 Response Rate",
+                    "𝛥 Refusal Rate",
+                    "𝛥 Sample Exhaustion",
+                    "𝛥 Data Quality Issues",
+                ],
+                inplace=True,
+            )
+        else:
+            daily_agg_df = apply_style_to_agg_data(
+                daily_agg_df,
+                ["𝛥 Completes", "𝛥 Response Rate"],
+                [
+                    "𝛥 Refusal Rate",
+                    "𝛥 Sample Exhaustion",
+                    "𝛥 Data Quality Issues",
+                ],
+            )
+        with st.container():
+            # add_header("Country Level Breakdown", 4)
+
+            st.dataframe(
+                daily_agg_df,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Country_Label": st.column_config.TextColumn(
+                        label="Country", pinned=True
+                    ),
+                    "Methodology": st.column_config.TextColumn(),
+                    "Valid Completes": st.column_config.TextColumn(),
+                    "% Completion": st.column_config.ProgressColumn(
+                        min_value=0,
+                        max_value=100,
+                        format="%d %%",
+                        help="Percentage of target completes achieved",
+                    ),
+                    "Response Rate": st.column_config.NumberColumn(format="%f %%"),
+                    "Refusal Rate": st.column_config.NumberColumn(format="%f %%"),
+                    "Sample Exhaustion": st.column_config.NumberColumn(format="%f %%"),
+                    "Data Quality Issues": st.column_config.NumberColumn(format="plain"),
+                },
+            )
+
 
 if __name__ == "__main__":
     custom_page_style("base.css")

@@ -9,6 +9,16 @@ def get_excel_data(path_to_excel, sheet_name=None):
     df = pd.read_excel(path_to_excel, sheet_name=sheet_name)
     return df
 
+def map_meth_icons(aggregated_data):
+    method_recode_dict = {
+        "WEB": "Web 🌐",
+        "F2F": "F2F 🧑‍🤝‍🧑",
+        "CATI": "CATI 📞",
+    }
+    aggregated_data["Methodology"] = aggregated_data["Methodology"].map(
+        method_recode_dict
+    )
+    return aggregated_data.copy()
 
 def aggregate_home_daily_table_data(daily_df, filtered_daily_df, targets_df):
     aggregated_data = daily_df
@@ -196,16 +206,11 @@ def aggregate_home_daily_table_data(daily_df, filtered_daily_df, targets_df):
         ]
     ]
 
-    method_recode_dict = {
-        "WEB": "Web 🌐",
-        "F2F": "F2F 🧑‍🤝‍🧑",
-        "CATI": "CATI 📞",
-    }
-    aggregated_data["Methodology"] = aggregated_data["Methodology"].map(
-        method_recode_dict
-    )
+    map_meth_icons(aggregated_data)
 
     return aggregated_data
+
+
 
 
 def aggregate_demo_age_table(daily_df, target_df, ci):
@@ -246,12 +251,7 @@ def aggregate_demo_age_table(daily_df, target_df, ci):
         )
     )
 
-    method_recode_dict = {
-        "WEB": "Web 🌐",
-        "F2F": "F2F 🧑‍🤝‍🧑",
-        "CATI": "CATI 📞",
-    }
-    counts_df["Methodology"] = counts_df["Methodology"].map(method_recode_dict)
+    map_meth_icons(counts_df)
 
     counts_df.drop("index", axis=1, inplace=True)
 
@@ -316,7 +316,7 @@ def aggregate_demo_age_table(daily_df, target_df, ci):
             "Age_18_29_%",
             "Age_30_44_%",
             "Age_45_54_%",
-            # "Age_54_plus_%",
+            "Age_54_plus_%",
             # "Gender_M_%",
             # "Gender_F_%",
             # "Education_I_%",
@@ -435,12 +435,7 @@ def aggregate_demo_gen_table(daily_df, target_df, ci):
         )
     )
 
-    method_recode_dict = {
-        "WEB": "Web 🌐",
-        "F2F": "F2F 🧑‍🤝‍🧑",
-        "CATI": "CATI 📞",
-    }
-    counts_df["Methodology"] = counts_df["Methodology"].map(method_recode_dict)
+    map_meth_icons(counts_df)
 
     counts_df.drop("index", axis=1, inplace=True)
 
@@ -612,12 +607,7 @@ def aggregate_demo_edu_table(daily_df, target_df, ci):
         )
     )
 
-    method_recode_dict = {
-        "WEB": "Web 🌐",
-        "F2F": "F2F 🧑‍🤝‍🧑",
-        "CATI": "CATI 📞",
-    }
-    counts_df["Methodology"] = counts_df["Methodology"].map(method_recode_dict)
+    map_meth_icons(counts_df)
 
     counts_df.drop("index", axis=1, inplace=True)
 

@@ -1,95 +1,86 @@
-import streamlit as st
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
+import pandas as pd
+import streamlit as st
 
-# Set page configuration
-st.set_page_config(page_title='Quality', layout='wide', page_icon="🔍")
-from modules.style_helpers import add_header, global_page_style,custom_page_style
+from data.data_helpers import get_excel_data
+from modules.control_helpers import sidebar_main
+from modules.style_helpers import add_header, custom_page_style, global_page_style
+from data.data_helpers import map_meth_icons
 
+st.set_page_config(page_title="Quality", layout="wide", page_icon="🔍")
 with st.spinner("Loading..."):
+    add_header(
+        "<img src='https://images1.ipsosinteractive.com/GOHBG/ISR/Admin/Reporting_Demo/images/client_logo.png' width='200px'/> <br/><br/> Fieldwork Progress Dashboard - Quality Metrics",
+        2,
+    )
+
+    st.logo(
+        "https://upload.wikimedia.org/wikipedia/en/a/a6/Ipsos_logo.svg",
+        icon_image="https://upload.wikimedia.org/wikipedia/en/a/a6/Ipsos_logo.svg",
+    )
+
+    data_dict = get_excel_data("data/dummy_data.xlsx")
+    daily_df = data_dict["daily_data"]
+    kpi_df = data_dict["quality_kpi"]
+    quality_df = data_dict["quality_table"].copy()
+    
+
+    selected_countries, selected_group, selected_methods = sidebar_main(
+        daily_df["Country_Label"], daily_df["Group"], daily_df["Methodology"]
+    )
+    if selected_group:
+        daily_df = daily_df[daily_df["Group"].isin(selected_group)]
+        quality_df = quality_df[quality_df["Group"].isin(selected_group)]
+    if selected_countries:
+        daily_df = daily_df[daily_df["Country_Label"].isin(selected_countries)]
+        quality_df = quality_df[quality_df["Country_Label"].isin(selected_countries)]
+    if selected_methods:
+        daily_df = daily_df[daily_df["Methodology"].isin(selected_methods)]
+        quality_df = quality_df[quality_df["Methodology"].isin(selected_methods)]
+
+    quality_df = map_meth_icons(quality_df)
+
+    with st.container(border=True) as cont:
+        loi_col, nr_col, sl_col, dqi_col = st.columns(4)
+        st.text("KPI TBD, the control shared only shows %, and some specs unclear.")
+        with loi_col:
+            kpi_mask = (kpi_df["kpi"] == "LOI Median",)
+            kpi_value = kpi_df.loc[kpi_mask, "value"].values[0]
+            st.write(f"LOI Median: {kpi_value}")
+        with nr_col:
+            kpi_mask = (kpi_df["kpi"] == "NR% Aveage",)
+            kpi_value = kpi_df.loc[kpi_mask, "value"].values[0]
+            st.write(f"NR% Aveage {kpi_value}")
+        with sl_col:
+            kpi_mask = (kpi_df["kpi"] == "SL% Average",)
+            kpi_value = kpi_df.loc[kpi_mask, "value"].values[0]
+            st.write(f"SL% Average {kpi_value}")
+        with dqi_col:
+            kpi_value = data_dict["daily_data"]["Invalid Completes"].sum()
+            st.write(f"Data Quality Issues {kpi_value}")
+
         
-    add_header("<img src='https://images1.ipsosinteractive.com/GOHBG/ISR/Admin/Reporting_Demo/images/client_logo.png' width='200px'/> <br/> Fieldwork Progress Dashboard - Quality Metrics", 2)
-
-    st.logo('https://upload.wikimedia.org/wikipedia/en/a/a6/Ipsos_logo.svg', icon_image='https://upload.wikimedia.org/wikipedia/en/a/a6/Ipsos_logo.svg')
-
-
-# Generate sample data
-date_rng = pd.date_range(start="2024-01-01", end="2024-03-25", freq="D")
-df = pd.DataFrame({
-    "date": date_rng,
-    "completes": np.random.randint(50, 200, size=len(date_rng))  # Random completion numbers
-})
-
-# Sidebar filter selection
-st.sidebar.header("Filters")
-date_options = {"No Filter (All Time)": None, "Last Day": 1, "Last 7 Days": 7, "Last 14 Days": 14}
-selected_option = st.sidebar.radio("Select Period", list(date_options.keys()))
-
-# Styling constants
-chart_height = 2
-axis_label_size = 8
-tick_label_size = 6
-selected_color = "#165769"
-non_selected_color = "#16576980"  # 50% transparent
-max_bar_color = "#FF5733"  # Distinct color for max bar
-outline_color = "black"  # Bold outline for max bar
-
-# Determine selected range
-if date_options[selected_option] is not None:
-    end_date = df["date"].max()
-    start_date = end_date - timedelta(days=date_options[selected_option])
-    df["highlight"] = df["date"].between(start_date, end_date)
-else:
-    df["highlight"] = True  # No filter applied, highlight all
-
-# Identify max value in the selected range
-max_idx = df[df["highlight"]]["completes"].idxmax()
-max_value = df.loc[max_idx, "completes"]
-max_date = df.loc[max_idx, "date"]
-
-# Plot using Matplotlib
-fig, ax = plt.subplots(figsize=(12, chart_height))
-
-# Plot bars
-for i, row in df.iterrows():
-    color = max_bar_color if i == max_idx else (selected_color if row["highlight"] else non_selected_color)
-    bar = ax.bar(row["date"], row["completes"], color=color)
-
-    # Add outline to max bar
-    if i == max_idx:
-        for rect in bar:
-            rect.set_edgecolor(outline_color)
-            rect.set_linewidth(1.5)
-
-# Annotate max value on the correct bar
-ax.text(max_date, max_value + (max_value * 0.05), f"{max_value}", color="red", 
-        ha="center", fontsize=axis_label_size, fontweight="bold")
-
-# Adjust y-axis limits to leave space above max bar
-ax.set_ylim(0, max_value * 1.2)
-
-# Customize X-axis labels
-ax.set_xticks(df["date"][::7])  # Show every 7th day
-ax.set_xticklabels(df["date"][::7].dt.strftime("%b %d"), rotation=45, fontsize=tick_label_size)
-
-# Customize Y-axis labels
-ax.tick_params(axis='y', labelsize=tick_label_size)
-
-# Apply axis labels
-ax.set_xlabel("Date", fontsize=axis_label_size)
-ax.set_ylabel("Completes", fontsize=axis_label_size)
-
-# Legend positioned at the bottom right
-#ax.legend(["Selected Period", "Other Days", "Max Value"], 
-#          loc="upper center", 
-#          bbox_to_anchor=(0.5, -0.3),  # Moves the legend below the x-axis
-#          ncol=3,  # Places legend items in a single row
-#          fontsize=axis_label_size)
-
-# Show in Streamlit
-st.pyplot(fig)
+        quality_df = quality_df.drop(columns=["Group"])
+        st.dataframe(
+            quality_df,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Country_Label": st.column_config.TextColumn(
+                    label="Country", pinned=True
+                ),
+                "Methodology": st.column_config.TextColumn(),
+                "Completes": st.column_config.TextColumn(label="Valid Completes"),
+                "LOI_median": st.column_config.NumberColumn(label="LOI /median/", format="%f %%"),
+                "Flagg_50%_LOI": st.column_config.NumberColumn(label="0.5xMedian LOI", format="%f %%"),
+                "Flagg_200%_LOI": st.column_config.NumberColumn(label="2xMedian LOI", format="%f %%"),
+                "NR%": st.column_config.NumberColumn(format="%f %%"),
+                "NR%_Max": st.column_config.NumberColumn(label="NR% max", format="%f %%"),
+                "NR%_95th_percentile": st.column_config.NumberColumn(label="NR% 95th percentile", format="%f %%"),
+                "SL%": st.column_config.NumberColumn(format="%f %%"),
+                "Sl_40%+": st.column_config.NumberColumn(label="SL 40%+", format="%f %%"),
+            },
+        )
 
 if __name__ == "__main__":
     global_page_style()
