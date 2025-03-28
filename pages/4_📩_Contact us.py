@@ -6,7 +6,7 @@ from modules.style_helpers import add_header, custom_page_style, global_page_sty
 st.set_page_config(page_title="Contact us", layout="wide", page_icon="📩")
 import streamlit_analytics2 as streamlit_analytics
 
-with streamlit_analytics.track(unsafe_password="opportunity"):
+with streamlit_analytics.track(unsafe_password="ping-pong"):
     add_header(
         "<div class='header-banner'><img src='https://images1.ipsosinteractive.com/GOHBG/ISR/Admin/Reporting_Demo/images/contact_us_banner.png' width='100%'/>",
         2,

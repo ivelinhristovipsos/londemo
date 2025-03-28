@@ -15,7 +15,7 @@ from modules.style_helpers import add_header, apply_style_to_agg_data, custom_pa
 
 st.set_page_config(page_title="Home", layout="wide", page_icon="🏠")
 
-with streamlit_analytics.track(unsafe_password="oppоrtunity"):
+with streamlit_analytics.track(unsafe_password="ping-pong"):
 
     add_header(
         "<img src='https://images1.ipsosinteractive.com/GOHBG/ISR/Admin/Reporting_Demo/images/client_logo.png' width='200px'/> <br/><br/> Fieldwork Progress Dashboard",

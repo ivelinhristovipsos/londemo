@@ -8,7 +8,7 @@ from modules.data_helpers import get_excel_data, map_meth_icons
 from modules.style_helpers import add_header, custom_page_style, global_page_style
 
 st.set_page_config(page_title="Quality", layout="wide", page_icon="🔍")
-with streamlit_analytics.track(unsafe_password="opportunity"):
+with streamlit_analytics.track(unsafe_password="ping-pong"):
     add_header(
         "<img src='https://images1.ipsosinteractive.com/GOHBG/ISR/Admin/Reporting_Demo/images/client_logo.png' width='200px'/> <br/><br/> Fieldwork Progress Dashboard - Quality Metrics",
         2,
