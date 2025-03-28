@@ -10,7 +10,6 @@ def get_excel_data(path_to_excel, sheet_name=None):
     df = pd.read_excel(path_to_excel, sheet_name=sheet_name)
     return df
 
-@st.cache_data
 def map_meth_icons(aggregated_data):
     method_recode_dict = {
         "WEB": "Web 🌐",
