@@ -112,7 +112,6 @@ def date_filter_change_callback():
     if not st.session_state["date_filter"]:
         st.session_state["date_filter"] = "1d"
 
-@st.cache_data
 def draw_completes_barchart(agg_df, max_daily_completes, back_days):
     """
     Draws a bar chart visualizing valid and invalid completes over time.
