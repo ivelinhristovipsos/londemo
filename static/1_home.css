@@ -10,6 +10,7 @@ div[class="st-emotion-cache-4uzi61 eu6p4el5"]{
 
 div[data-testid="stElementContainer"] div[data-testid="stMetric"] {
     background-color: #797d94 !important;
+    align-items: center;
 }
 
 label[data-testid="stMetricLabel"] {
@@ -23,30 +24,9 @@ div[data-testid="stMetricValue"] {
 div[data-testid="stMetricDelta"]{
     background-color: aliceblue;
     width:50%;
-    opacity:0.5;
+    opacity:0.9;
     font-weight: bold;
     border-radius:5px;
 }
 
-/* KPI Card delta filtering */
-button[kind="segmented_control"]{
-    background-color: rgba(255, 255, 255, 0.87);
-}
 
-button[kind="segmented_control"]:hover{
-    background-color: rgba(164, 189, 192, 0.479);
-    border:1px solid rgb(34, 95, 110);
-    color:#0b5f38
-}
-
-button[kind="segmented_controlActive"]{
-    background-color: rgba(20, 112, 122, 0.87);
-    border:2px solid white;
-    color:white;
-}
-button[kind="segmented_controlActive"]:hover{
-    border:2px solid rgba(189, 189, 189, 0.486);
-    background-color: rgba(20, 112, 122, 0.87);
-    opacity:0.8;
-    color:rgb(255, 255, 255);
-}

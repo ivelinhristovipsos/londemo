@@ -50,3 +50,11 @@ button[kind="segmented_controlActive"]:hover{
     opacity:0.8;
     color:rgb(255, 255, 255);
 }
+
+div[data-testid="stColumn"] {
+    background-color: #797d94 !important;
+    -webkit-border-radius: 10px 10px 10px 10px; 
+    -moz-border-radius: 10px 10px 10px 10px;
+    -o-border-radius: 10px 10px 10px 10px;
+    border-radius: 10px 10px 10px 10px;
+}

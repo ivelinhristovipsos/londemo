@@ -507,7 +507,7 @@ def aggregate_demo_gen_table(daily_df, target_df, ci):
             # "Education_II_%",
             # "Education_III_%",
         ]
-    ]
+    ].copy()
     target_perc_df.rename(
         columns={
             # "Country_Label": "Country",

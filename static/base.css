@@ -4,7 +4,11 @@
 
 /* Background color for the main content area */
 div[data-baseweb="select"] span {
-    background-color: #bdeec0 !important;
+    background-color: rgb(34, 95, 110) !important;
+}
+
+.st-cy{
+    border-color:  rgb(34, 95, 110) !important;
 }
 
 section[data-testid="stMain"]{
@@ -15,8 +19,38 @@ header[data-testid="stHeader"]{
     background-color:#797d94;
 }
 
+/* KPI Card delta filtering */
+button[kind="segmented_control"]{
+    background-color: rgba(255, 255, 255, 0.87);
+}
+
+button[kind="segmented_control"]:hover{
+    background-color: rgba(164, 189, 192, 0.479);
+    border:1px solid #0b5f38;
+    color: rgb(34, 95, 110);
+}
+
+button[kind="segmented_controlActive"]{
+    background-color: rgb(34, 95, 110);
+    border:1px solid rgba(255, 255, 255, 0.397);
+    color:white;
+}
+button[kind="segmented_controlActive"]:hover{
+    border:1px solid rgb(34, 95, 110);
+    background-color: #19698f;
+    opacity:1;
+    color:rgb(255, 255, 255);
+}
 
 
+div[class="st-emotion-cache-wq5ihp e1icttdg0"] p:first-of-type {
+    font-size: large; /*KPI text size*/
+}
 
+summary[class="st-emotion-cache-c02u1e e1kosxz23"]:hover {
+    color: #19698f !important;
+}
 
-
+div[data-testid="stSidebarContent"] {
+    border: 1px solid #797d94;
+}
