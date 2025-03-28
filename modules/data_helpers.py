@@ -1,14 +1,16 @@
-from functools import lru_cache
+# from functools import lru_cache
 
 import pandas as pd
 from modules.style_helpers import apply_style_to_agg_data
+import streamlit as st
 
 
-@lru_cache(maxsize=1)
+@st.cache_data
 def get_excel_data(path_to_excel, sheet_name=None):
     df = pd.read_excel(path_to_excel, sheet_name=sheet_name)
     return df
 
+@st.cache_data
 def map_meth_icons(aggregated_data):
     method_recode_dict = {
         "WEB": "Web 🌐",

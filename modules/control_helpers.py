@@ -21,7 +21,6 @@ def load_state(key, default_value=None):
         st.session_state["_" + key] = default_value
     st.session_state[key] = st.session_state["_" + key]
 
-
 def sidebar_main(country: pd.Series, group: pd.Series, methodology: pd.Series) -> tuple:
     """Sidebar for the main page
     Returns:
@@ -113,8 +112,19 @@ def date_filter_change_callback():
     if not st.session_state["date_filter"]:
         st.session_state["date_filter"] = "1d"
 
-
+@st.cache_data
 def draw_completes_barchart(agg_df, max_daily_completes, back_days):
+    """
+    Draws a bar chart visualizing valid and invalid completes over time.
+
+    Args:
+        agg_df (pd.DataFrame): Aggregated DataFrame containing 'Date', 'Valid Completes', and 'Invalid Completes' columns.
+        max_daily_completes (int): Maximum daily completes to set the y-axis limit.
+        back_days (int): Number of days to highlight in the chart.
+
+    Returns:
+        None: Displays the bar chart in the Streamlit app.
+    """
     if (
         "Valid Completes" not in agg_df.columns
         or "Invalid Completes" not in agg_df.columns
@@ -283,13 +293,13 @@ def draw_completes_barchart(agg_df, max_daily_completes, back_days):
         },
     )
 
-    st.pyplot(fig, dpi=300)
+    st.pyplot(fig, dpi=150)
 
 
 # fig_html = mpld3.fig_to_html(fig)
 # components.html(fig_html, height=600)
 
-
+@st.cache_data
 def draw_gauge(
     value: int | float,
     value_suffix,
@@ -310,7 +320,7 @@ def draw_gauge(
         go.Indicator(
             mode=mode,
             value=value,
-            title={"text": title, "font": {"size": 16, "color": "white"}, "align": "center"},
+            title={"text": title, "font": {"size": 24, "color": "white"}, "align": "center"},
             gauge={
                 "axis": {"range": (0, max_value),"tickcolor": "white", "tickwidth": 2, "tickmode": "linear", "dtick": tick_spacing, "tickfont": {"color": "white"}},
                 "bar": {"color": bar_color},
@@ -334,36 +344,3 @@ def draw_gauge(
         height=400,  # Set height for square proportions
     )
     st.plotly_chart(fig, use_container_width=True)
-
-
-def draw_gauge_(value):
-    fig = go.Figure(
-        go.Indicator(
-            mode="gauge+number+delta",
-            value=value,
-            delta={
-                "reference": 100,
-                "increasing": {"color": "green"},
-                "decreasing": {"color": "red"},
-            },
-            gauge={
-                "axis": {"range": [0, 100]},
-                "bar": {"color": "dodgerblue"},
-                "steps": [
-                    {"range": [0, 50], "color": "#FFDDDD"},
-                    {"range": [50, 80], "color": "#FFF4CC"},
-                    {"range": [80, 100], "color": "#DDFFDD"},
-                ],
-                "threshold": {
-                    "line": {"color": "black", "width": 4},
-                    "thickness": 0.75,
-                    "value": 90,
-                },
-            },
-            number={"suffix": "%"},
-            domain={"x": [0, 1], "y": [0, 1]},
-            title={"text": "Gauge Title", "font": {"size": 16}, "align": "center"},
-        )
-    )
-
-    st.plotly_chart(fig)
